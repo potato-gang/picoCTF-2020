@@ -53,15 +53,15 @@ If we do modulo 4096 we now get the following:
 So if we know X (this is just a matter of finding the right version of the libc) we know the return value of `get_random()`, which will always be the same.
 
 #### win()
-In `win()` we have a call to `gets()` which allows for unlimited writing to the stack resulting in a buffer-overflow but we also
+In `win()` we have a call to `gets()` which allows for unlimited writing to the stack resulting in a buffer-overflow and we also
 have a [format-string vulnerability](https://en.wikipedia.org/wiki/Uncontrolled_format_string) because a user-supplied input gets passed as
 the first parameter to `printf()`.
 
 ### Exploiting get_random()
-As stated above we have to find X because this will always be the return-value of `get_random()`. The problem is that there are _a lot_ of
+As stated above we have to find the position/offset of `rand()` because this will always be the return-value of `get_random()`. The problem is that there are _a lot_ of
 different libc versions out there and we don't have insight which libc
 is used on the challenge server. So the only solution left is bruteforcing. We just try numbers from 0 - 4096 and see which works. BUT there is a catch: When libraries get loaded into a 32-bit address space their addresses will always start with `0xf7`. The problem with that is that the most-significant bit is set, which means that the address of `rand()` will appear as some negative integer causing the modulo operation to also return a negative integer.
-So we actually have to try out -1 to -4096 when bruteforcing and it turns out -31 does the job. -31 means that X is 0xfe0.   
+So we actually have to try out -1 to -4096 when bruteforcing and it turns out -31 does the job. -31 means that the offset is 0xfe0.   
 See [bf.py](./bf.py) for implementation details.
 
 ### Exploiting win()
